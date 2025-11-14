@@ -206,6 +206,8 @@
         </div>
         <span class="control-label">|</span>
         <button id="animate-btn">⏸️ Pause</button>
+        <span class="control-label">|</span>
+        <button id="sound-btn">🔇 Sound Off</button>
     </div>
 
     <div id="loading">Generating your sound waves...</div>
@@ -226,6 +228,13 @@
                 this.animationTime = 0;
                 this.mode = 'bars'; // bars, wave, circular
                 this.hoveredBar = null;
+                
+                // Audio setup
+                this.audioContext = null;
+                this.masterGain = null;
+                this.isSoundEnabled = false;
+                this.currentOscillators = [];
+                this.yearProgress = 0; // 0 to 1 representing progress through the year
                 
                 this.setupCanvas();
                 this.generateContributionData();
@@ -321,6 +330,13 @@
             animate() {
                 if (this.isAnimating) {
                     this.animationTime += 0.02;
+                    // Update year progress (loops through the year continuously)
+                    this.yearProgress = (this.animationTime * 0.01) % 1;
+                    
+                    // Update audio if enabled
+                    if (this.isSoundEnabled) {
+                        this.updateAudio();
+                    }
                 }
 
                 this.ctx.fillStyle = 'rgba(10, 10, 10, 0.2)';
@@ -469,6 +485,102 @@
                 this.ctx.shadowBlur = 0;
             }
 
+            setupAudioContext() {
+                if (!this.audioContext) {
+                    this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                    this.masterGain = this.audioContext.createGain();
+                    this.masterGain.connect(this.audioContext.destination);
+                    this.masterGain.gain.value = 0.15; // Lower volume for ambient sound
+                }
+            }
+
+            enableSound() {
+                this.setupAudioContext();
+                this.isSoundEnabled = true;
+                this.createHarmonicDrone();
+            }
+
+            disableSound() {
+                this.isSoundEnabled = false;
+                this.stopAllOscillators();
+            }
+
+            createHarmonicDrone() {
+                // Create base drone with harmonic overtones
+                // Using pentatonic scale for pleasant harmonies
+                const baseFreq = 110; // A2
+                const harmonicRatios = [1, 9/8, 5/4, 3/2, 5/3, 2]; // Pentatonic intervals
+                
+                harmonicRatios.forEach((ratio, index) => {
+                    const osc = this.audioContext.createOscillator();
+                    const gain = this.audioContext.createGain();
+                    
+                    osc.type = 'sine';
+                    osc.frequency.value = baseFreq * ratio;
+                    
+                    // Volume decreases for higher harmonics
+                    gain.gain.value = 0;
+                    
+                    osc.connect(gain);
+                    gain.connect(this.masterGain);
+                    osc.start();
+                    
+                    this.currentOscillators.push({ osc, gain, harmonic: index });
+                });
+            }
+
+            updateAudio() {
+                if (!this.isSoundEnabled || !this.audioContext) return;
+                
+                // Get current day based on year progress
+                const currentDayIndex = Math.floor(this.yearProgress * this.contributionData.length);
+                const currentDay = this.contributionData[currentDayIndex];
+                
+                if (!currentDay) return;
+                
+                // Normalize contribution value
+                const normalizedValue = Math.min(currentDay.contributions / 30, 1);
+                
+                // Update each harmonic's volume based on contribution intensity and harmonic number
+                this.currentOscillators.forEach(({ gain, harmonic }) => {
+                    // Different harmonics activate at different contribution levels
+                    const threshold = harmonic * 0.15;
+                    const targetVolume = normalizedValue > threshold ? 
+                        (normalizedValue - threshold) * (1 / (harmonic + 1)) * 0.3 : 0;
+                    
+                    // Smooth volume changes
+                    gain.gain.linearRampToValueAtTime(
+                        targetVolume,
+                        this.audioContext.currentTime + 0.1
+                    );
+                });
+                
+                // Modulate base frequency slightly based on time of year
+                // Creates a sense of progression through the year
+                const baseFreq = 110 + (this.yearProgress * 20); // Slight pitch rise through the year
+                this.currentOscillators.forEach(({ osc, harmonic }, index) => {
+                    const harmonicRatios = [1, 9/8, 5/4, 3/2, 5/3, 2];
+                    osc.frequency.linearRampToValueAtTime(
+                        baseFreq * harmonicRatios[harmonic],
+                        this.audioContext.currentTime + 0.1
+                    );
+                });
+            }
+
+            stopAllOscillators() {
+                this.currentOscillators.forEach(({ osc, gain }) => {
+                    gain.gain.linearRampToValueAtTime(0, this.audioContext.currentTime + 0.5);
+                    setTimeout(() => {
+                        try {
+                            osc.stop();
+                        } catch (e) {
+                            // Oscillator may already be stopped
+                        }
+                    }, 500);
+                });
+                this.currentOscillators = [];
+            }
+
             setupEventListeners() {
                 // Mode buttons
                 document.getElementById('bars-mode').addEventListener('click', () => {
@@ -491,6 +603,17 @@
                     this.isAnimating = !this.isAnimating;
                     document.getElementById('animate-btn').textContent = 
                         this.isAnimating ? '⏸️ Pause' : '▶️ Play';
+                });
+
+                // Sound button
+                document.getElementById('sound-btn').addEventListener('click', () => {
+                    if (this.isSoundEnabled) {
+                        this.disableSound();
+                        document.getElementById('sound-btn').textContent = '🔇 Sound Off';
+                    } else {
+                        this.enableSound();
+                        document.getElementById('sound-btn').textContent = '🔊 Sound On';
+                    }
                 });
 
                 // Mouse hover for tooltip (bars mode only)
