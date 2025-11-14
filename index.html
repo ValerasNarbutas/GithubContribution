@@ -208,6 +208,8 @@
         <button id="animate-btn">⏸️ Pause</button>
         <span class="control-label">|</span>
         <button id="sound-btn">🔇 Sound Off</button>
+        <span class="control-label">|</span>
+        <button id="play-year-btn">▶️ Play Year</button>
     </div>
 
     <div id="loading">Generating your sound waves...</div>
@@ -235,6 +237,11 @@
                 this.isSoundEnabled = false;
                 this.currentOscillators = [];
                 this.yearProgress = 0; // 0 to 1 representing progress through the year
+                this.isPlayingYear = false;
+                this.yearPlaybackSpeed = 0.002; // Speed of year playback
+                this.hoverNoteOscillator = null;
+                this.hoverNoteGain = null;
+                this.lastHoveredIndex = -1;
                 
                 this.setupCanvas();
                 this.generateContributionData();
@@ -330,12 +337,23 @@
             animate() {
                 if (this.isAnimating) {
                     this.animationTime += 0.02;
-                    // Update year progress (loops through the year continuously)
-                    this.yearProgress = (this.animationTime * 0.01) % 1;
+                    // Update year progress (loops through the year continuously if not playing year)
+                    if (!this.isPlayingYear) {
+                        this.yearProgress = (this.animationTime * 0.01) % 1;
+                    }
                     
                     // Update audio if enabled
                     if (this.isSoundEnabled) {
                         this.updateAudio();
+                    }
+                }
+                
+                // Handle year playback
+                if (this.isPlayingYear) {
+                    this.yearProgress += this.yearPlaybackSpeed;
+                    if (this.yearProgress >= 1) {
+                        this.yearProgress = 0;
+                        this.stopYearPlayback();
                     }
                 }
 
@@ -490,7 +508,7 @@
                     this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
                     this.masterGain = this.audioContext.createGain();
                     this.masterGain.connect(this.audioContext.destination);
-                    this.masterGain.gain.value = 0.15; // Lower volume for ambient sound
+                    this.masterGain.gain.value = 0.4; // Increased volume (was 0.15)
                 }
             }
 
@@ -581,6 +599,76 @@
                 this.currentOscillators = [];
             }
 
+            playYearFromStart() {
+                this.setupAudioContext();
+                if (!this.isSoundEnabled) {
+                    this.enableSound();
+                    document.getElementById('sound-btn').textContent = '🔊 Sound On';
+                }
+                this.yearProgress = 0;
+                this.isPlayingYear = true;
+                document.getElementById('play-year-btn').textContent = '⏹️ Stop Year';
+            }
+
+            stopYearPlayback() {
+                this.isPlayingYear = false;
+                document.getElementById('play-year-btn').textContent = '▶️ Play Year';
+            }
+
+            playHoverNote(dayIndex) {
+                if (!this.audioContext || !this.isSoundEnabled || this.isPlayingYear) return;
+                
+                const data = this.contributionData[dayIndex];
+                if (!data) return;
+                
+                // Stop previous hover note
+                this.stopHoverNote();
+                
+                // Calculate frequency based on contribution intensity
+                const normalizedValue = Math.min(data.contributions / 30, 1);
+                const baseFreq = 220; // A3
+                const scaleNotes = [0, 2, 4, 7, 9, 12]; // Pentatonic scale in semitones
+                const noteIndex = Math.floor(normalizedValue * (scaleNotes.length - 1));
+                const frequency = baseFreq * Math.pow(2, scaleNotes[noteIndex] / 12);
+                
+                // Create oscillator for this note
+                this.hoverNoteOscillator = this.audioContext.createOscillator();
+                this.hoverNoteGain = this.audioContext.createGain();
+                
+                this.hoverNoteOscillator.type = 'sine';
+                this.hoverNoteOscillator.frequency.value = frequency;
+                
+                this.hoverNoteGain.gain.value = 0;
+                this.hoverNoteGain.gain.linearRampToValueAtTime(
+                    0.3 * (normalizedValue * 0.5 + 0.5),
+                    this.audioContext.currentTime + 0.05
+                );
+                
+                this.hoverNoteOscillator.connect(this.hoverNoteGain);
+                this.hoverNoteGain.connect(this.masterGain);
+                this.hoverNoteOscillator.start();
+                
+                this.lastHoveredIndex = dayIndex;
+            }
+
+            stopHoverNote() {
+                if (this.hoverNoteOscillator) {
+                    this.hoverNoteGain.gain.linearRampToValueAtTime(
+                        0,
+                        this.audioContext.currentTime + 0.1
+                    );
+                    setTimeout(() => {
+                        try {
+                            this.hoverNoteOscillator.stop();
+                        } catch (e) {
+                            // Already stopped
+                        }
+                        this.hoverNoteOscillator = null;
+                        this.hoverNoteGain = null;
+                    }, 100);
+                }
+            }
+
             setupEventListeners() {
                 // Mode buttons
                 document.getElementById('bars-mode').addEventListener('click', () => {
@@ -616,6 +704,15 @@
                     }
                 });
 
+                // Play year button
+                document.getElementById('play-year-btn').addEventListener('click', () => {
+                    if (this.isPlayingYear) {
+                        this.stopYearPlayback();
+                    } else {
+                        this.playYearFromStart();
+                    }
+                });
+
                 // Mouse hover for tooltip (bars mode only)
                 this.canvas.addEventListener('mousemove', (e) => {
                     if (this.mode !== 'bars') return;
@@ -628,6 +725,11 @@
                     if (barIndex >= 0 && barIndex < this.contributionData.length) {
                         this.hoveredBar = barIndex;
                         const data = this.contributionData[barIndex];
+                        
+                        // Play note for this day if not already playing it
+                        if (barIndex !== this.lastHoveredIndex) {
+                            this.playHoverNote(barIndex);
+                        }
                         
                         const tooltip = document.getElementById('tooltip');
                         tooltip.querySelector('.tooltip-date').textContent = 
@@ -647,6 +749,8 @@
 
                 this.canvas.addEventListener('mouseleave', () => {
                     this.hoveredBar = null;
+                    this.lastHoveredIndex = -1;
+                    this.stopHoverNote();
                     document.getElementById('tooltip').style.display = 'none';
                 });
             }
