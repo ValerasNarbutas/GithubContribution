@@ -1,43 +1,42 @@
-# 🌌 GitHub Galaxy - 2025 Contributions Visualization
+# 🎵 GitHub Waves - 2025 Contributions Visualization
 
-A unique and stunning 3D visualization of GitHub contributions for 2025, rendered as an interactive spiral galaxy where each day becomes a celestial object in space.
+A unique and stunning music visualizer for GitHub contributions in 2025, transforming your coding activity into beautiful animated sound waves and frequency bars.
 
-![GitHub Galaxy Visualization](https://img.shields.io/badge/Visualization-3D%20Galaxy-purple)
+![GitHub Waves Visualization](https://img.shields.io/badge/Visualization-Music%20Waves-purple)
 ![Year](https://img.shields.io/badge/Year-2025-blue)
-![Tech](https://img.shields.io/badge/Tech-Three.js-brightgreen)
+![Tech](https://img.shields.io/badge/Tech-Canvas%202D-brightgreen)
 
 ## 🎨 Concept
 
-Unlike traditional 2D contribution graphs or simple 3D city visualizations, **GitHub Galaxy** transforms your coding activity into a living, breathing spiral galaxy:
+Unlike traditional 2D contribution graphs, **GitHub Waves** transforms your coding activity into a dynamic audio-visual experience:
 
-- **🌟 Each contribution day** is represented as a star or celestial object
-- **✨ Contribution intensity** determines the size, brightness, and color of each star
-- **🌀 Time progression** follows spiral galaxy arms, creating a natural flow through the year
-- **🎮 Interactive navigation** allows you to fly through and explore your contribution universe
+- **🎵 Each contribution day** creates a frequency bar or wave point
+- **✨ Contribution intensity** determines the height, brightness, and color
+- **〰️ Multiple visualization modes** - Bars, Waves, and Circular patterns
+- **🎮 Interactive controls** to switch modes and pause/play animations
 - **🎨 Color gradient** transitions from blue (low activity) → purple (medium) → pink (high activity)
 
 ## ✨ Features
 
-### Visual Features
-- **3D Spiral Galaxy Layout**: Three spiral arms representing your year of contributions
-- **Dynamic Coloring**: Contribution intensity affects color (blue → purple → pink gradient)
-- **Glowing Core**: Pulsating galactic center with atmospheric effects
-- **Background Star Field**: 10,000 ambient stars creating depth and immersion
-- **Point Lights**: High-activity days emit their own light
-- **Atmospheric Fog**: Adds depth and creates a space-like atmosphere
+### Visual Modes
+- **📊 Bars Mode**: Frequency bars that pulse vertically with glow effects
+- **〰️ Wave Mode**: Multiple layered sine waves flowing across the screen
+- **⭕ Circular Mode**: Concentric rings radiating from center with particle effects
+- **🎨 Dynamic Coloring**: Purple-to-pink gradient based on contribution intensity
+- **✨ Smooth Animations**: Canvas-based rendering with pulsing and flowing effects
 
 ### Interactive Features
-- **Mouse Drag Navigation**: Rotate and orbit around your galaxy
-- **Scroll to Zoom**: Zoom in/out to explore details
-- **Hover Tooltips**: See exact date and contribution count for each day
-- **Auto-rotation**: Galaxy slowly spins automatically (can be toggled)
-- **Reset View**: Return to default camera position instantly
+- **Mode Switching**: Toggle between Bars, Wave, and Circular visualizations
+- **Play/Pause**: Control animation playback
+- **Hover Tooltips**: See exact date and contribution count (in Bars mode)
+- **Responsive Design**: Adapts to any screen size
+- **Smooth Transitions**: Fluid animations at 60 FPS
 
 ### Statistics Dashboard
 - **Total Contributions**: Your complete 2025 contribution count
 - **Current Streak**: Active contribution days in a row
 - **Longest Streak**: Your best contribution streak of the year
-- **Brightest Day**: The day with maximum contributions
+- **Loudest Day**: The day with maximum contributions
 
 ## 🚀 Quick Start
 
@@ -83,31 +82,31 @@ npx http-server
 
 | Action | Control |
 |--------|---------|
-| **Rotate View** | Click and drag |
-| **Zoom** | Mouse wheel / Trackpad pinch |
-| **View Details** | Hover over any star |
-| **Pause/Resume** | Click "Pause Rotation" button |
-| **Reset Camera** | Click "Reset View" button |
+| **Switch to Bars** | Click "📊 Bars" button |
+| **Switch to Waves** | Click "〰️ Wave" button |
+| **Switch to Circular** | Click "⭕ Circular" button |
+| **Pause/Play** | Click "⏸️ Pause" / "▶️ Play" button |
+| **View Details** | Hover over bars (Bars mode only) |
 
 ## 🔧 Technical Details
 
 ### Technologies Used
-- **Three.js** (r128): WebGL-based 3D rendering library
+- **Canvas 2D API**: Hardware-accelerated 2D rendering
 - **Vanilla JavaScript**: No framework dependencies
-- **HTML5 Canvas**: Hardware-accelerated rendering
+- **HTML5 Canvas**: Real-time animation rendering
 - **CSS3**: Modern styling with backdrop filters and gradients
 
 ### Architecture
 - **Self-contained**: Single HTML file with embedded CSS and JavaScript
 - **No build step**: Works directly in the browser
-- **CDN-based**: Three.js loaded from CDN (can be made offline)
+- **No external dependencies**: Pure web standards
 - **Responsive**: Adapts to any screen size
 
 ### Performance
-- **10,000+ objects**: Background stars plus 365 contribution objects
+- **365 contribution bars/points**: One for each day of the year
 - **60 FPS**: Smooth animation on modern hardware
-- **Raycasting**: Efficient hover detection
-- **Point lights**: Dynamic lighting for high-contribution days
+- **Canvas rendering**: Efficient 2D graphics
+- **Real-time effects**: Pulsing, glowing, and flowing animations
 
 ## 📊 Data Structure
 
@@ -123,26 +122,24 @@ The visualization uses a simple data structure for each day:
 
 ### Customization
 
-#### Change Galaxy Arms
+#### Change Animation Speed
 ```javascript
-const armCount = 3;  // Number of spiral arms (try 2-5)
-```
-
-#### Adjust Rotation Speed
-```javascript
-this.galaxyGroup.rotation.y += 0.001;  // Increase for faster rotation
+this.animationTime += 0.02;  // Increase for faster animation
 ```
 
 #### Modify Color Palette
 ```javascript
-// In createStar method, adjust colors:
-if (normalizedContributions < 0.33) {
-    color = new THREE.Color(0x58a6ff);  // Change blue
-} else if (normalizedContributions < 0.66) {
-    color = new THREE.Color(0x6a7fdb);  // Change purple
-} else {
-    color = new THREE.Color(0xff6b9d);  // Change pink
-}
+// In drawing methods, adjust hue values:
+const hue = 280 - (normalizedValue * 60); // Purple to Pink
+// Change base hue (280) or range (60) for different colors
+```
+
+#### Adjust Visualization Modes
+```javascript
+// Add new modes or modify existing ones in the draw methods
+drawBarsMode() { /* bars rendering */ }
+drawWaveMode() { /* wave rendering */ }
+drawCircularMode() { /* circular rendering */ }
 ```
 
 ## 🔌 GitHub API Integration (Future)
@@ -173,15 +170,14 @@ query {
 
 ## 🎯 Unique Selling Points
 
-What makes GitHub Galaxy stand out:
+What makes GitHub Waves stand out:
 
-1. **Astronomical Theme**: First GitHub contribution visualizer using galaxy/space theme
-2. **Spiral Layout**: Natural time progression along galaxy arms (not just a grid)
-3. **True 3D Navigation**: Full camera controls, not just a rotating object
-4. **Atmospheric Effects**: Fog, glowing core, point lights create immersion
-5. **Zero Dependencies**: Single file, works offline after first load
-6. **Performance**: Handles 10,000+ objects at 60 FPS
-7. **Interactive Details**: Real-time tooltips without performance impact
+1. **Music Visualizer Theme**: First GitHub contribution visualizer using audio-reactive aesthetics
+2. **Multiple Modes**: Three distinct visualization styles (Bars, Wave, Circular)
+3. **Canvas-Based**: Smooth 2D animations without complex 3D libraries
+4. **Zero Dependencies**: Single file, works offline after first load
+5. **Performance**: Renders 365+ elements at 60 FPS smoothly
+6. **Interactive**: Real-time mode switching and tooltips
 
 ## 🛠️ Development
 
@@ -210,9 +206,10 @@ GithubContribution/
 ## 🌟 Inspiration
 
 This project was inspired by:
-- The beauty of spiral galaxies like Andromeda and Milky Way
-- The desire to make contribution graphs more engaging and beautiful
-- The concept that code contributions are like stars - each one adds to the universe
+- The beauty of music visualizers and audio-reactive art
+- The rhythm and flow of coding activity throughout the year
+- The desire to make contribution graphs more engaging and dynamic
+- The concept that contributions have rhythm - peaks, valleys, and patterns
 
 ## 🤝 Contributing
 

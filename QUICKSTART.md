@@ -1,38 +1,48 @@
-# GitHub Galaxy - Quick Start Guide
+# GitHub Waves - Quick Start Guide
 
 ## 🚀 Getting Started in 30 Seconds
 
 1. **Download**: Clone or download this repository
 2. **Open**: Double-click `index.html` (or right-click → Open with → your browser)
-3. **Explore**: Your galaxy is ready!
+3. **Explore**: Your music visualizer is ready!
 
 That's it! No installation, no build steps, no dependencies.
 
 ## 🎮 How to Use
 
 ### Navigation
-- **View the Galaxy**: The galaxy automatically rotates to show all angles
-- **Pause/Resume**: Click the "⏸️ Pause Rotation" button to stop/start
-- **Explore Stars**: Hover over any star to see the date and contribution count
+- **Choose Visualization**: Click mode buttons (📊 Bars, 〰️ Wave, ⭕ Circular)
+- **Pause/Play**: Click the pause button to stop/start animations
+- **Explore Details**: Hover over bars to see date and contribution count (Bars mode)
 - **Check Stats**: View your contribution statistics in the top-left panel
 
-### Understanding Your Galaxy
+### Understanding Your Visualizer
 
 #### Colors Mean Activity
-- 🔵 **Blue Stars**: Low contribution days (1-10 contributions)
-- 🟣 **Purple Stars**: Medium contribution days (11-20 contributions)  
-- 🟠 **Pink Stars**: High contribution days (21+ contributions)
-- ⚫ **Dim Stars**: Days with no contributions
+- 🟣 **Purple**: Low contribution days (1-10 contributions)
+- 💜 **Purple-Pink**: Medium contribution days (11-20 contributions)  
+- 💗 **Pink**: High contribution days (21+ contributions)
+- ⚫ **Dim/Small**: Days with no contributions
 
-#### Size Matters
-- Larger, brighter stars = more contributions that day
-- Each star has a glow effect proportional to activity
-- The galactic core pulses at the center
+#### Visualization Modes
 
-#### The Spiral Structure
-- **3 Spiral Arms**: Your year flows through three galaxy arms
-- **Time Progression**: Starts near the center, expands outward
-- **Natural Flow**: Like a real spiral galaxy (Milky Way, Andromeda)
+**📊 Bars Mode**
+- Frequency bars extending from center
+- Height represents contribution intensity
+- Bars pulse with animation
+- Hover to see details
+
+**〰️ Wave Mode**
+- Multiple layered sine waves
+- Wave amplitude based on contributions
+- Flowing, organic motion
+- Creates audio waveform effect
+
+**⭕ Circular Mode**
+- Concentric rings radiating outward
+- Particles positioned in circular patterns
+- Pulsating center core
+- Creates radial symmetry
 
 ### Statistics Panel
 
@@ -40,42 +50,39 @@ The info panel shows:
 - **Total Contributions**: Your complete 2025 count
 - **Current Streak**: How many consecutive days you've contributed
 - **Longest Streak**: Your best streak of the year
-- **Brightest Day**: The day with the most contributions
+- **Loudest Day**: The day with the most contributions
 
 ## 🔧 Customization
 
-Want to personalize your galaxy? Open `index.html` in a text editor:
+Want to personalize your visualizer? Open `index.html` in a text editor:
 
 ### Change Animation Speed
-Find this line (~line 67):
-```css
-animation: rotate 120s linear infinite;
-```
-Change `120s` to a smaller number for faster rotation (e.g., `60s`)
-
-### Modify Colors
-Find the color section (~line 260):
-```javascript
-if (normalizedContributions < 0.33) {
-    color = '#58a6ff';  // Blue - change this hex code
-} else if (normalizedContributions < 0.66) {
-    color = '#6a7fdb';  // Purple - change this hex code
-} else {
-    color = '#ff6b9d';  // Pink - change this hex code
-}
-```
-
-### Adjust Galaxy Arms
 Find this line (~line 207):
 ```javascript
-const armCount = 3;  // Change to 2, 4, or 5 for different patterns
+this.animationTime += 0.02;
 ```
+Change `0.02` to a larger number for faster animation (e.g., `0.05`)
 
-### Increase Spiral Tightness
-Find this line (~line 208):
+### Modify Colors
+Find the color section (~line 252):
 ```javascript
-const rotationsPerArm = 2.5;  // Increase for tighter spirals
+const hue = 280 - (normalizedValue * 60); // Purple to Pink
 ```
+Change `280` (base hue) or `60` (range) for different color schemes
+
+### Adjust Wave Count
+Find this line (~line 295):
+```javascript
+const waveCount = 5;  // Number of wave layers
+```
+Change to 3-10 for fewer/more waves
+
+### Modify Circular Rings
+Find this line (~line 321):
+```javascript
+const rings = 3;  // Number of concentric rings
+```
+Change to 2-5 for different patterns
 
 ## 🌐 Deploy to GitHub Pages
 
@@ -153,14 +160,14 @@ The current implementation runs entirely in your browser with no external calls.
 
 ## 💡 Fun Ideas
 
-- Screenshot your galaxy at different angles
-- Compare different years (create multiple versions)
-- Print it as poster art
+- Screenshot different modes for comparison
+- Watch how patterns emerge in different visualizations
 - Use it in presentations about your coding journey
-- Share with your team to compare galaxies
+- Share screenshots of interesting patterns
+- Compare wave patterns across different time periods
 
-## 🌟 Enjoy Your Galaxy!
+## 🌟 Enjoy Your Music Visualizer!
 
-Your contributions are like stars in the universe - each one matters and together they create something beautiful. 
+Your contributions create rhythm and patterns - like music, each one adds to the symphony of your coding year. 
 
-Happy exploring! 🚀✨
+Happy exploring! 🎵✨
