@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GitHub Galaxy - 2025 Contributions</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: radial-gradient(ellipse at center, #1a1a2e 0%, #000000 100%);
+            color: #fff;
+            overflow: hidden;
+            height: 100vh;
+        }
+
+        #galaxy-container {
+            width: 100vw;
+            height: 100vh;
+            perspective: 1000px;
+            position: relative;
+        }
+
+        #galaxy {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            transform-style: preserve-3d;
+            animation: rotate 120s linear infinite;
+        }
+
+        @keyframes rotate {
+            from { transform: rotateY(0deg) rotateX(15deg); }
+            to { transform: rotateY(360deg) rotateX(15deg); }
+        }
+
+        .galaxy-paused #galaxy {
+            animation-play-state: paused;
+        }
+
+        .star {
+            position: absolute;
+            border-radius: 50%;
+            transform-style: preserve-3d;
+            pointer-events: auto;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .star:hover {
+            transform: scale(1.5) !important;
+            z-index: 1000;
+        }
+
+        .star-glow {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            border-radius: 50%;
+            filter: blur(8px);
+            opacity: 0.6;
+        }
+
+        #core {
+            position: absolute;
+            width: 100px;
+            height: 100px;
+            background: radial-gradient(circle, rgba(157, 78, 221, 0.8) 0%, rgba(106, 127, 219, 0.4) 50%, transparent 100%);
+            border-radius: 50%;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) translateZ(0px);
+            animation: pulse 3s ease-in-out infinite;
+            box-shadow: 0 0 80px rgba(157, 78, 221, 0.6);
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: translate(-50%, -50%) translateZ(0px) scale(1); opacity: 0.8; }
+            50% { transform: translate(-50%, -50%) translateZ(0px) scale(1.1); opacity: 1; }
+        }
+
+        #background-stars {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+
+        #info-panel {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.85);
+            padding: 20px;
+            border-radius: 10px;
+            border: 1px solid rgba(88, 166, 255, 0.3);
+            max-width: 300px;
+            backdrop-filter: blur(10px);
+            z-index: 10;
+        }
+
+        h1 {
+            font-size: 24px;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .stats {
+            margin-top: 15px;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .stat-item {
+            display: flex;
+            justify-content: space-between;
+            margin: 5px 0;
+            padding: 5px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 5px;
+        }
+
+        .stat-label {
+            color: #888;
+        }
+
+        .stat-value {
+            color: #58a6ff;
+            font-weight: bold;
+        }
+
+        #controls {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.85);
+            padding: 15px 25px;
+            border-radius: 30px;
+            border: 1px solid rgba(88, 166, 255, 0.3);
+            backdrop-filter: blur(10px);
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            z-index: 10;
+        }
+
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 20px rgba(102, 126, 234, 0.5);
+        }
+
+        .control-label {
+            font-size: 12px;
+            color: #888;
+        }
+
+        #tooltip {
+            position: absolute;
+            background: rgba(0, 0, 0, 0.95);
+            padding: 12px 16px;
+            border-radius: 8px;
+            border: 1px solid rgba(88, 166, 255, 0.5);
+            pointer-events: none;
+            display: none;
+            font-size: 12px;
+            z-index: 1000;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+        }
+
+        .tooltip-date {
+            color: #58a6ff;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .tooltip-contributions {
+            color: #fff;
+        }
+
+        #loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 20px;
+            color: #58a6ff;
+            z-index: 5;
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="background-stars"></canvas>
+    
+    <div id="galaxy-container">
+        <div id="galaxy">
+            <div id="core"></div>
+        </div>
+    </div>
+    
+    <div id="info-panel">
+        <h1>🌌 GitHub Galaxy</h1>
+        <p style="font-size: 12px; color: #888; margin-bottom: 10px;">
+            Your 2025 contributions as a spiral galaxy
+        </p>
+        <div class="stats">
+            <div class="stat-item">
+                <span class="stat-label">Total Contributions:</span>
+                <span class="stat-value" id="total-contributions">0</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">Current Streak:</span>
+                <span class="stat-value" id="current-streak">0 days</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">Longest Streak:</span>
+                <span class="stat-value" id="longest-streak">0 days</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">Brightest Day:</span>
+                <span class="stat-value" id="brightest-day">-</span>
+            </div>
+        </div>
+    </div>
+
+    <div id="controls">
+        <button id="rotate-btn">⏸️ Pause Rotation</button>
+        <span class="control-label">Hover over stars to see details</span>
+    </div>
+
+    <div id="loading">Generating your galaxy...</div>
+    
+    <div id="tooltip">
+        <div class="tooltip-date"></div>
+        <div class="tooltip-contributions"></div>
+    </div>
+
+    <script>
+        // GitHub Galaxy Visualization (Standalone - No external dependencies)
+        class GitHubGalaxy {
+            constructor() {
+                this.galaxy = document.getElementById('galaxy');
+                this.container = document.getElementById('galaxy-container');
+                this.contributionData = [];
+                this.stars = [];
+                
+                this.initBackgroundStars();
+                this.generateContributionData();
+                this.createGalaxy();
+                this.setupEventListeners();
+                
+                document.getElementById('loading').classList.add('hidden');
+            }
+
+            initBackgroundStars() {
+                const canvas = document.getElementById('background-stars');
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+                const ctx = canvas.getContext('2d');
+                
+                // Draw background stars
+                for (let i = 0; i < 200; i++) {
+                    const x = Math.random() * canvas.width;
+                    const y = Math.random() * canvas.height;
+                    const radius = Math.random() * 1.5;
+                    const opacity = Math.random() * 0.5 + 0.2;
+                    
+                    ctx.beginPath();
+                    ctx.arc(x, y, radius, 0, Math.PI * 2);
+                    ctx.fillStyle = `rgba(255, 255, 255, ${opacity})`;
+                    ctx.fill();
+                }
+
+                // Animate twinkling
+                setInterval(() => {
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    for (let i = 0; i < 200; i++) {
+                        const x = Math.random() * canvas.width;
+                        const y = Math.random() * canvas.height;
+                        const radius = Math.random() * 1.5;
+                        const opacity = Math.random() * 0.5 + 0.2;
+                        
+                        ctx.beginPath();
+                        ctx.arc(x, y, radius, 0, Math.PI * 2);
+                        ctx.fillStyle = `rgba(255, 255, 255, ${opacity})`;
+                        ctx.fill();
+                    }
+                }, 3000);
+            }
+
+            generateContributionData() {
+                const startDate = new Date('2025-01-01');
+                let currentStreak = 0;
+                let longestStreak = 0;
+                let tempStreak = 0;
+                let maxContributions = 0;
+                let maxDate = '';
+                let totalContributions = 0;
+
+                for (let day = 0; day < 365; day++) {
+                    const date = new Date(startDate);
+                    date.setDate(date.getDate() + day);
+                    
+                    const dayOfWeek = date.getDay();
+                    const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+                    
+                    let contributions;
+                    if (Math.random() < 0.15) {
+                        contributions = 0;
+                    } else {
+                        const baseContributions = isWeekend ? 
+                            Math.floor(Math.random() * 8) : 
+                            Math.floor(Math.random() * 20);
+                        
+                        contributions = Math.random() < 0.1 ? 
+                            baseContributions + Math.floor(Math.random() * 30) : 
+                            baseContributions;
+                    }
+
+                    totalContributions += contributions;
+
+                    if (contributions > maxContributions) {
+                        maxContributions = contributions;
+                        maxDate = date.toLocaleDateString('en-US', { 
+                            month: 'short', 
+                            day: 'numeric' 
+                        });
+                    }
+
+                    if (contributions > 0) {
+                        tempStreak++;
+                        if (day === 364) {
+                            currentStreak = tempStreak;
+                        }
+                    } else {
+                        if (tempStreak > longestStreak) {
+                            longestStreak = tempStreak;
+                        }
+                        tempStreak = 0;
+                    }
+
+                    this.contributionData.push({
+                        date: date,
+                        contributions: contributions,
+                        dayOfYear: day
+                    });
+                }
+
+                if (tempStreak > longestStreak) {
+                    longestStreak = tempStreak;
+                }
+
+                document.getElementById('total-contributions').textContent = 
+                    totalContributions.toLocaleString();
+                document.getElementById('current-streak').textContent = 
+                    `${currentStreak} days`;
+                document.getElementById('longest-streak').textContent = 
+                    `${longestStreak} days`;
+                document.getElementById('brightest-day').textContent = 
+                    `${maxDate} (${maxContributions})`;
+            }
+
+            createGalaxy() {
+                const armCount = 3;
+                const rotationsPerArm = 2.5;
+
+                this.contributionData.forEach((data, index) => {
+                    this.createStar(data, index, armCount, rotationsPerArm);
+                });
+            }
+
+            createStar(data, index, armCount, rotationsPerArm) {
+                const progress = index / this.contributionData.length;
+                const armIndex = index % armCount;
+                const angle = (progress * Math.PI * 2 * rotationsPerArm) + 
+                             (armIndex * Math.PI * 2 / armCount);
+                
+                // Calculate position in 3D space
+                const distance = 100 + (progress * 400);
+                const randomOffset = (Math.random() - 0.5) * 30;
+                const randomHeight = (Math.random() - 0.5) * 50;
+                
+                const x = Math.cos(angle) * (distance + randomOffset);
+                const z = Math.sin(angle) * (distance + randomOffset);
+                const y = randomHeight;
+
+                // Calculate size and color based on contributions
+                const normalizedContributions = Math.min(data.contributions / 30, 1);
+                
+                let size, color, glowSize;
+                
+                if (data.contributions === 0) {
+                    size = 3;
+                    color = '#444444';
+                    glowSize = 0;
+                } else {
+                    size = 5 + (normalizedContributions * 15);
+                    glowSize = size * 2;
+                    
+                    if (normalizedContributions < 0.33) {
+                        color = '#58a6ff';
+                    } else if (normalizedContributions < 0.66) {
+                        color = '#6a7fdb';
+                    } else {
+                        color = '#ff6b9d';
+                    }
+                }
+
+                // Create star element
+                const star = document.createElement('div');
+                star.className = 'star';
+                star.style.width = `${size}px`;
+                star.style.height = `${size}px`;
+                star.style.backgroundColor = color;
+                star.style.boxShadow = `0 0 ${glowSize}px ${color}`;
+                star.style.left = '50%';
+                star.style.top = '50%';
+                star.style.transform = `
+                    translate(-50%, -50%)
+                    translate3d(${x}px, ${y}px, ${z}px)
+                `;
+
+                // Store data for tooltip
+                star.dataset.date = data.date.toLocaleDateString('en-US', { 
+                    weekday: 'short',
+                    year: 'numeric', 
+                    month: 'short', 
+                    day: 'numeric' 
+                });
+                star.dataset.contributions = data.contributions;
+
+                // Add glow effect for bright stars
+                if (normalizedContributions > 0.5) {
+                    const glow = document.createElement('div');
+                    glow.className = 'star-glow';
+                    glow.style.width = `${glowSize}px`;
+                    glow.style.height = `${glowSize}px`;
+                    glow.style.backgroundColor = color;
+                    star.appendChild(glow);
+                }
+
+                this.galaxy.appendChild(star);
+                this.stars.push(star);
+            }
+
+            setupEventListeners() {
+                // Rotate button
+                const rotateBtn = document.getElementById('rotate-btn');
+                rotateBtn.addEventListener('click', () => {
+                    this.container.classList.toggle('galaxy-paused');
+                    const isPaused = this.container.classList.contains('galaxy-paused');
+                    rotateBtn.textContent = isPaused ? '▶️ Resume Rotation' : '⏸️ Pause Rotation';
+                });
+
+                // Tooltip on hover
+                const tooltip = document.getElementById('tooltip');
+                this.stars.forEach(star => {
+                    star.addEventListener('mouseenter', (e) => {
+                        tooltip.querySelector('.tooltip-date').textContent = star.dataset.date;
+                        tooltip.querySelector('.tooltip-contributions').textContent = 
+                            `${star.dataset.contributions} contribution${star.dataset.contributions !== '1' ? 's' : ''}`;
+                        tooltip.style.display = 'block';
+                    });
+
+                    star.addEventListener('mousemove', (e) => {
+                        tooltip.style.left = e.clientX + 15 + 'px';
+                        tooltip.style.top = e.clientY + 15 + 'px';
+                    });
+
+                    star.addEventListener('mouseleave', () => {
+                        tooltip.style.display = 'none';
+                    });
+                });
+
+                // Window resize
+                window.addEventListener('resize', () => {
+                    const canvas = document.getElementById('background-stars');
+                    canvas.width = window.innerWidth;
+                    canvas.height = window.innerHeight;
+                    this.initBackgroundStars();
+                });
+            }
+        }
+
+        // Initialize when page loads
+        window.addEventListener('DOMContentLoaded', () => {
+            new GitHubGalaxy();
+        });
+    </script>
+</body>
+</html>
